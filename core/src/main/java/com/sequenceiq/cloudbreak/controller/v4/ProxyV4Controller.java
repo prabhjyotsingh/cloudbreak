@@ -8,7 +8,6 @@ import javax.transaction.Transactional.TxType;
 
 import org.springframework.stereotype.Controller;
 
-import com.sequenceiq.cloudbreak.workspace.controller.WorkspaceEntityType;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.common.EnvironmentNames;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.proxies.ProxyV4Endpoint;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.proxies.requests.ProxyV4Request;
@@ -18,6 +17,7 @@ import com.sequenceiq.cloudbreak.api.util.ConverterUtil;
 import com.sequenceiq.cloudbreak.common.type.ResourceEvent;
 import com.sequenceiq.cloudbreak.domain.ProxyConfig;
 import com.sequenceiq.cloudbreak.service.proxy.ProxyConfigService;
+import com.sequenceiq.cloudbreak.workspace.controller.WorkspaceEntityType;
 
 @Controller
 @Transactional(TxType.NEVER)
@@ -47,22 +47,25 @@ public class ProxyV4Controller extends NotificationController implements ProxyV4
     public ProxyV4Response post(Long workspaceId, ProxyV4Request request) {
         ProxyConfig config = converterUtil.convert(request, ProxyConfig.class);
         config = proxyConfigService.createInEnvironment(config, request.getEnvironments(), workspaceId);
+        ProxyV4Response response = converterUtil.convert(config, ProxyV4Response.class);
         notify(ResourceEvent.PROXY_CONFIG_CREATED);
-        return converterUtil.convert(config, ProxyV4Response.class);
+        return response;
     }
 
     @Override
     public ProxyV4Response delete(Long workspaceId, String name) {
         ProxyConfig deleted = proxyConfigService.deleteByNameFromWorkspace(name, workspaceId);
+        ProxyV4Response response = converterUtil.convert(deleted, ProxyV4Response.class);
         notify(ResourceEvent.PROXY_CONFIG_DELETED);
-        return converterUtil.convert(deleted, ProxyV4Response.class);
+        return response;
     }
 
     @Override
     public ProxyV4Responses deleteMultiple(Long workspaceId, Set<String> names) {
         Set<ProxyConfig> deleted = proxyConfigService.deleteMultipleByNameFromWorkspace(names, workspaceId);
+        ProxyV4Responses response = new ProxyV4Responses(converterUtil.convertAllAsSet(deleted, ProxyV4Response.class));
         notify(ResourceEvent.PROXY_CONFIG_DELETED);
-        return new ProxyV4Responses(converterUtil.convertAllAsSet(deleted, ProxyV4Response.class));
+        return response;
     }
 
     @Override

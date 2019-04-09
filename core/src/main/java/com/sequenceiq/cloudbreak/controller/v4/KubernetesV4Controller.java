@@ -8,7 +8,6 @@ import javax.transaction.Transactional.TxType;
 
 import org.springframework.stereotype.Controller;
 
-import com.sequenceiq.cloudbreak.workspace.controller.WorkspaceEntityType;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.common.EnvironmentNames;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.kubernetes.KubernetesV4Endpoint;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.kubernetes.requests.KubernetesV4Request;
@@ -18,6 +17,7 @@ import com.sequenceiq.cloudbreak.api.util.ConverterUtil;
 import com.sequenceiq.cloudbreak.common.type.ResourceEvent;
 import com.sequenceiq.cloudbreak.domain.KubernetesConfig;
 import com.sequenceiq.cloudbreak.service.KubernetesConfigService;
+import com.sequenceiq.cloudbreak.workspace.controller.WorkspaceEntityType;
 
 @Controller
 @Transactional(TxType.NEVER)
@@ -47,30 +47,34 @@ public class KubernetesV4Controller extends NotificationController implements Ku
     public KubernetesV4Response post(Long workspaceId, KubernetesV4Request request) {
         KubernetesConfig kubernetesConfig = converterUtil.convert(request, KubernetesConfig.class);
         kubernetesConfig = kubernetesConfigService.createInEnvironment(kubernetesConfig, request.getEnvironments(), workspaceId);
+        KubernetesV4Response response = converterUtil.convert(kubernetesConfig, KubernetesV4Response.class);
         notify(ResourceEvent.KUBERNETES_CONFIG_CREATED);
-        return converterUtil.convert(kubernetesConfig, KubernetesV4Response.class);
+        return response;
     }
 
     @Override
     public KubernetesV4Response put(Long workspaceId, KubernetesV4Request request) {
         KubernetesConfig kubernetesConfig = converterUtil.convert(request, KubernetesConfig.class);
         kubernetesConfig = kubernetesConfigService.updateByWorkspaceId(workspaceId, kubernetesConfig);
+        KubernetesV4Response response = converterUtil.convert(kubernetesConfig, KubernetesV4Response.class);
         notify(ResourceEvent.KUBERNETES_CONFIG_MODIFIED);
-        return converterUtil.convert(kubernetesConfig, KubernetesV4Response.class);
+        return response;
     }
 
     @Override
     public KubernetesV4Response delete(Long workspaceId, String name) {
         KubernetesConfig deleted = kubernetesConfigService.deleteByNameFromWorkspace(name, workspaceId);
+        KubernetesV4Response response = converterUtil.convert(deleted, KubernetesV4Response.class);
         notify(ResourceEvent.KUBERNETES_CONFIG_DELETED);
-        return converterUtil.convert(deleted, KubernetesV4Response.class);
+        return response;
     }
 
     @Override
     public KubernetesV4Responses deleteMultiple(Long workspaceId, Set<String> names) {
         Set<KubernetesConfig> deleted = kubernetesConfigService.deleteMultipleByNameFromWorkspace(names, workspaceId);
+        KubernetesV4Responses response = new KubernetesV4Responses(converterUtil.convertAllAsSet(deleted, KubernetesV4Response.class));
         notify(ResourceEvent.KUBERNETES_CONFIG_DELETED);
-        return new KubernetesV4Responses(converterUtil.convertAllAsSet(deleted, KubernetesV4Response.class));
+        return response;
     }
 
     @Override

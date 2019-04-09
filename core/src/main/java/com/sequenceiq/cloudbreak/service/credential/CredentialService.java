@@ -120,6 +120,7 @@ public class CredentialService extends AbstractWorkspaceAwareResourceService<Cre
         Credential original = credentialRepository.findActiveByNameAndWorkspaceIdFilterByPlatforms(credential.getName(), workspaceId,
                 preferencesService.enabledPlatforms()).orElseThrow(notFound(NOT_FOUND_FORMAT_MESS_NAME, credential.getName()));
         if (!Objects.equals(credential.cloudPlatform(), original.cloudPlatform())) {
+            sendCredentialNotification(credential, ResourceEvent.CREDENTIAL_MODIFICATION_FAILED);
             throw new BadRequestException("Modifying credential platform is forbidden");
         }
         credential.setId(original.getId());

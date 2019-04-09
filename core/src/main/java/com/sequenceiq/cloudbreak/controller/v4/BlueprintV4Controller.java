@@ -49,22 +49,25 @@ public class BlueprintV4Controller extends NotificationController implements Blu
     public BlueprintV4Response post(Long workspaceId, BlueprintV4Request request) {
         Blueprint blueprint = blueprintService.createForLoggedInUser(
                 converterUtil.convert(request, Blueprint.class), workspaceId);
+        BlueprintV4Response response = converterUtil.convert(blueprint, BlueprintV4Response.class);
         notify(ResourceEvent.BLUEPRINT_CREATED);
-        return converterUtil.convert(blueprint, BlueprintV4Response.class);
+        return response;
     }
 
     @Override
     public BlueprintV4Response delete(Long workspaceId, String name) {
-        Blueprint deleted = blueprintService.deleteByNameFromWorkspace(name, workspaceId);
+        Blueprint blueprint = blueprintService.deleteByNameFromWorkspace(name, workspaceId);
+        BlueprintV4Response response = converterUtil.convert(blueprint, BlueprintV4Response.class);
         notify(ResourceEvent.BLUEPRINT_DELETED);
-        return converterUtil.convert(deleted, BlueprintV4Response.class);
+        return response;
     }
 
     @Override
     public BlueprintV4Responses deleteMultiple(Long workspaceId, Set<String> names) {
         Set<Blueprint> deleted = blueprintService.deleteMultipleByNameFromWorkspace(names, workspaceId);
+        Set<BlueprintV4Response> response = converterUtil.convertAllAsSet(deleted, BlueprintV4Response.class);
         notify(ResourceEvent.BLUEPRINT_DELETED);
-        return new BlueprintV4Responses(converterUtil.convertAllAsSet(deleted, BlueprintV4Response.class));
+        return new BlueprintV4Responses(response);
     }
 
     @Override

@@ -48,22 +48,25 @@ public class CredentialV4Controller extends NotificationController implements Cr
     @Override
     public CredentialV4Response post(Long workspaceId, CredentialV4Request request) {
         Credential credential = credentialService.createForLoggedInUser(converterUtil.convert(request, Credential.class), workspaceId);
+        CredentialV4Response response = converterUtil.convert(credential, CredentialV4Response.class);
         notify(ResourceEvent.CREDENTIAL_CREATED);
-        return converterUtil.convert(credential, CredentialV4Response.class);
+        return response;
     }
 
     @Override
     public CredentialV4Response delete(Long workspaceId, String name) {
         Credential deleted = credentialService.deleteByNameFromWorkspace(name, workspaceId);
+        CredentialV4Response response = converterUtil.convert(deleted, CredentialV4Response.class);
         notify(ResourceEvent.CREDENTIAL_DELETED);
-        return converterUtil.convert(deleted, CredentialV4Response.class);
+        return response;
     }
 
     @Override
     public CredentialV4Responses deleteMultiple(Long workspaceId, Set<String> names) {
         Set<Credential> deleted = credentialService.deleteMultipleByNameFromWorkspace(names, workspaceId);
+        CredentialV4Responses response = new CredentialV4Responses(converterUtil.convertAllAsSet(deleted, CredentialV4Response.class));
         notify(ResourceEvent.CREDENTIAL_DELETED);
-        return new CredentialV4Responses(converterUtil.convertAllAsSet(deleted, CredentialV4Response.class));
+        return response;
     }
 
     @Override
@@ -98,7 +101,8 @@ public class CredentialV4Controller extends NotificationController implements Cr
     @Override
     public CredentialV4Response authorizeCodeGrantFlow(Long workspaceId, String platform, String code, String state) {
         Credential credential = credentialService.authorizeCodeGrantFlow(code, state, workspaceId, platform);
+        CredentialV4Response response = converterUtil.convert(credential, CredentialV4Response.class);
         notify(ResourceEvent.CREDENTIAL_CREATED);
-        return converterUtil.convert(credential, CredentialV4Response.class);
+        return response;
     }
 }

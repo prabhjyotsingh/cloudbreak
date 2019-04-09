@@ -7,8 +7,6 @@ import javax.validation.Valid;
 
 import org.springframework.stereotype.Controller;
 
-import com.sequenceiq.cloudbreak.workspace.controller.WorkspaceEntityType;
-import com.sequenceiq.cloudbreak.workspace.model.User;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.mpacks.ManagementPackV4Endpoint;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.mpacks.request.ManagementPackV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.mpacks.response.ManagementPackV4Response;
@@ -19,6 +17,8 @@ import com.sequenceiq.cloudbreak.domain.ManagementPack;
 import com.sequenceiq.cloudbreak.service.RestRequestThreadLocalService;
 import com.sequenceiq.cloudbreak.service.mpack.ManagementPackService;
 import com.sequenceiq.cloudbreak.service.user.UserService;
+import com.sequenceiq.cloudbreak.workspace.controller.WorkspaceEntityType;
+import com.sequenceiq.cloudbreak.workspace.model.User;
 
 @Controller
 @WorkspaceEntityType(ManagementPack.class)
@@ -52,21 +52,23 @@ public class ManagementPackV4Controller extends NotificationController implement
         ManagementPack managementPack = converterUtil.convert(request, ManagementPack.class);
         User user = userService.getOrCreate(restRequestThreadLocalService.getCloudbreakUser());
         managementPack = mpackService.create(managementPack, workspaceId, user);
+        ManagementPackV4Response response = converterUtil.convert(managementPack, ManagementPackV4Response.class);
         notify(ResourceEvent.MANAGEMENT_PACK_CREATED);
-        return converterUtil.convert(managementPack, ManagementPackV4Response.class);
+        return response;
     }
 
     @Override
     public ManagementPackV4Response deleteInWorkspace(Long workspaceId, String name) {
         ManagementPack deleted = mpackService.deleteByNameFromWorkspace(name, workspaceId);
+        ManagementPackV4Response response = converterUtil.convert(deleted, ManagementPackV4Response.class);
         notify(ResourceEvent.MANAGEMENT_PACK_DELETED);
-        return converterUtil.convert(deleted, ManagementPackV4Response.class);
+        return response;
     }
 
     @Override
     public ManagementPackV4Responses deleteMultipleInWorkspace(Long workspaceId, Set<String> names) {
-        Set<ManagementPack> deleted = mpackService.deleteMultipleByNameFromWorkspace(names, workspaceId);
+        Set<ManagementPack> response = mpackService.deleteMultipleByNameFromWorkspace(names, workspaceId);
         notify(ResourceEvent.MANAGEMENT_PACK_DELETED);
-        return new ManagementPackV4Responses(converterUtil.convertAllAsSet(deleted, ManagementPackV4Response.class));
+        return new ManagementPackV4Responses(converterUtil.convertAllAsSet(response, ManagementPackV4Response.class));
     }
 }
