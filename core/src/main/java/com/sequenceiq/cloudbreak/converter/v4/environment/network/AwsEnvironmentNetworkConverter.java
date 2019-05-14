@@ -8,6 +8,7 @@ import com.sequenceiq.cloudbreak.common.mappable.CloudPlatform;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.environment.base.EnvironmentNetworkAwsV4Params;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.environment.requests.EnvironmentNetworkV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.environment.responses.EnvironmentNetworkV4Response;
+import com.sequenceiq.cloudbreak.cloud.model.CreatedCloudNetwork;
 import com.sequenceiq.cloudbreak.domain.environment.AwsNetwork;
 import com.sequenceiq.cloudbreak.domain.environment.BaseNetwork;
 
@@ -18,6 +19,14 @@ public class AwsEnvironmentNetworkConverter extends EnvironmentBaseNetworkConver
     BaseNetwork createProviderSpecificNetwork(EnvironmentNetworkV4Request source) {
         AwsNetwork awsNetwork = new AwsNetwork();
         awsNetwork.setVpcId(source.getAws().getVpcId());
+        return awsNetwork;
+    }
+
+    @Override
+    BaseNetwork createProviderSpecificNetwork(EnvironmentNetworkV4Request source, CreatedCloudNetwork createdCloudNetwork) {
+        AwsNetwork awsNetwork = new AwsNetwork();
+        awsNetwork.setVpcId(createdCloudNetwork.getNetworkId());
+        awsNetwork.setSubnetIds(createdCloudNetwork.getSubnetIds());
         return awsNetwork;
     }
 
@@ -39,5 +48,10 @@ public class AwsEnvironmentNetworkConverter extends EnvironmentBaseNetworkConver
     @Override
     public CloudPlatform getCloudPlatform() {
         return CloudPlatform.AWS;
+    }
+
+    @Override
+    public boolean hasExistingNetwork(EnvironmentNetworkV4Request source) {
+        return source.getAws().getVpcId() != null;
     }
 }
