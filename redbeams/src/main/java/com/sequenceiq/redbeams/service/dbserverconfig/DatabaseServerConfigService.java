@@ -1,5 +1,8 @@
 package com.sequenceiq.redbeams.service.dbserverconfig;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
@@ -22,8 +25,11 @@ import com.sequenceiq.cloudbreak.exception.BadRequestException;
 import com.sequenceiq.cloudbreak.exception.NotFoundException;
 import com.sequenceiq.cloudbreak.logger.MDCBuilder;
 import com.sequenceiq.cloudbreak.workspace.resource.WorkspaceResource;
+import com.sequenceiq.redbeams.domain.DatabaseConfig;
 import com.sequenceiq.redbeams.domain.DatabaseServerConfig;
 import com.sequenceiq.redbeams.repository.DatabaseServerConfigRepository;
+import com.sequenceiq.redbeams.service.connectivity.DatabaseConnectionService;
+import com.sequenceiq.redbeams.service.dbconfig.DatabaseConfigService;
 import com.sequenceiq.redbeams.service.validation.DatabaseServerConnectionValidator;
 
 @Service
@@ -33,6 +39,12 @@ public class DatabaseServerConfigService {
 
     @Inject
     private DatabaseServerConfigRepository repository;
+
+    @Inject
+    private DatabaseConfigService databaseConfigService;
+
+    @Inject
+    private DatabaseConnectionService databaseConnectionService;
 
     @Inject
     private DatabaseServerConnectionValidator connectionValidator;
@@ -117,6 +129,33 @@ public class DatabaseServerConfigService {
         return errors.getAllErrors().stream()
             .map(e -> (e instanceof FieldError ? ((FieldError) e).getField() + ": " : "") + e.getDefaultMessage())
             .collect(Collectors.joining("; "));
+    }
+
+    public String createDatabaseOnServer(Long workspaceId, String serverName, String databaseName,
+        String databaseType) {
+        DatabaseServerConfig databaseServerConfig = getByNameInWorkspace(workspaceId, serverName);
+        String createResult;
+
+        try (Connection conn = databaseConnectionService.getConnection(databaseServerConfig);
+             PreparedStatement statement = conn.prepareStatement("CREATE DATABASE ?")) {
+            statement.setString(1, databaseName);
+
+            if (!statement.execute()) {
+                createResult = "created";
+
+                DatabaseConfig newDatabaseConfig =
+                        databaseServerConfig.createDatabaseConfig(databaseName, databaseType);
+                databaseConfigService.register(newDatabaseConfig);
+
+            } else {
+                createResult = "failed";
+            }
+
+        } catch (SQLException e) {
+            createResult = "error when creating database: " + e.getMessage();
+        }
+
+        return createResult;
     }
 
     public WorkspaceResource resource() {

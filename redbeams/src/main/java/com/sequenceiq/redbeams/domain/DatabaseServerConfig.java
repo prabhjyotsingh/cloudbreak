@@ -16,10 +16,13 @@ import org.hibernate.annotations.Where;
 
 import com.sequenceiq.cloudbreak.api.endpoint.v4.common.DatabaseVendor;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.common.ResourceStatus;
+import com.sequenceiq.cloudbreak.util.DatabaseCommon;
 import com.sequenceiq.cloudbreak.workspace.resource.WorkspaceResource;
 import com.sequenceiq.cloudbreak.service.secret.SecretValue;
 import com.sequenceiq.cloudbreak.service.secret.domain.Secret;
 import com.sequenceiq.cloudbreak.service.secret.domain.SecretToString;
+
+import java.util.Optional;
 
 @Entity
 @Where(clause = "archived = false")
@@ -227,4 +230,30 @@ public class DatabaseServerConfig implements ProvisionEntity, ArchivableResource
         this.environmentId = environmentId;
     }
 
+    /**
+     * Creates a database with a database name and type from the database server config.
+     *
+     * @param databaseName the name of the database
+     * @param type         the type of database
+     * @return a DatabaseConfig
+     */
+    public DatabaseConfig createDatabaseConfig(String databaseName, String type) {
+        DatabaseConfig databaseConfig = new DatabaseConfig();
+
+        databaseConfig.setDatabaseVendor(databaseVendor);
+        databaseConfig.setName(databaseName);
+        databaseConfig.setDescription(description);
+        databaseConfig.setConnectionURL(DatabaseCommon.getConnectionURL(databaseVendor.jdbcUrlDriverId(),
+            host, port, Optional.of(databaseName)));
+        databaseConfig.setDatabaseVendor(databaseVendor);
+        databaseConfig.setConnectionDriver(connectionDriver);
+        databaseConfig.setConnectionUserName(connectionUserName.getRaw());
+        databaseConfig.setConnectionPassword(connectionPassword.getRaw());
+        databaseConfig.setStatus(ResourceStatus.USER_MANAGED);
+        databaseConfig.setType(type);
+        databaseConfig.setConnectorJarUrl(connectorJarUrl);
+        databaseConfig.setEnvironmentId(environmentId);
+
+        return databaseConfig;
+    }
 }

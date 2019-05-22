@@ -14,6 +14,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.sequenceiq.redbeams.api.endpoint.v4.database.request.CreateDatabaseV4Request;
+import com.sequenceiq.redbeams.api.endpoint.v4.database.responses.CreateDatabaseV4Response;
 import com.sequenceiq.redbeams.api.endpoint.v4.databaseserver.requests.DatabaseServerTestV4Request;
 import com.sequenceiq.redbeams.api.endpoint.v4.databaseserver.requests.DatabaseServerV4Request;
 import com.sequenceiq.redbeams.api.endpoint.v4.databaseserver.responses.DatabaseServerTestV4Response;
@@ -83,4 +85,11 @@ public interface DatabaseServerV4Endpoint {
     @ApiOperation(value = DatabaseServerOpDescription.TEST_CONNECTION, produces = MediaType.APPLICATION_JSON, notes = Notes.DATABASE_SERVER_NOTES,
             nickname = "testDatabaseServerConnection")
     DatabaseServerTestV4Response test(@Valid DatabaseServerTestV4Request request);
+
+    @POST
+    @Path("createDatabase")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = DatabaseServerOpDescription.CREATE_DATABASE, produces = MediaType.APPLICATION_JSON, notes = Notes.DATABASE_SERVER_NOTES,
+            nickname = "createDatabase")
+    CreateDatabaseV4Response createDatabase(@Valid CreateDatabaseV4Request request);
 }

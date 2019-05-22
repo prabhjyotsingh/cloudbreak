@@ -9,6 +9,8 @@ import javax.transaction.Transactional.TxType;
 import org.springframework.stereotype.Component;
 
 import com.sequenceiq.cloudbreak.api.util.ConverterUtil;
+import com.sequenceiq.redbeams.api.endpoint.v4.database.request.CreateDatabaseV4Request;
+import com.sequenceiq.redbeams.api.endpoint.v4.database.responses.CreateDatabaseV4Response;
 import com.sequenceiq.redbeams.api.endpoint.v4.databaseserver.DatabaseServerV4Endpoint;
 import com.sequenceiq.redbeams.api.endpoint.v4.databaseserver.requests.DatabaseServerTestV4Request;
 import com.sequenceiq.redbeams.api.endpoint.v4.databaseserver.requests.DatabaseServerV4Request;
@@ -73,5 +75,12 @@ public class DatabaseServerV4Controller implements DatabaseServerV4Endpoint {
             connectionResult = databaseServerConfigService.testConnection(server);
         }
         return new DatabaseServerTestV4Response(connectionResult);
+    }
+
+    @Override
+    public CreateDatabaseV4Response createDatabase(CreateDatabaseV4Request request) {
+        databaseServerConfigService.createDatabaseOnServer(DEFAULT_WORKSPACE, request.getExistingDatabaseServerName(),
+                request.getDatabaseName(), request.getType());
+        return new CreateDatabaseV4Response();
     }
 }

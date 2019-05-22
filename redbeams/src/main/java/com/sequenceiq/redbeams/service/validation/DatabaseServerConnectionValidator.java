@@ -8,9 +8,15 @@ import java.util.Optional;
 
 import com.sequenceiq.cloudbreak.util.DatabaseCommon;
 import com.sequenceiq.redbeams.domain.DatabaseServerConfig;
+import com.sequenceiq.redbeams.service.connectivity.DatabaseConnectionService;
+
+import javax.inject.Inject;
 
 @Component
 public class DatabaseServerConnectionValidator extends BaseConnectionValidator implements Validator {
+
+    @Inject
+    private DatabaseConnectionService dbConnectionService;
 
     @Override
     public boolean supports(Class<?> clazz) {
@@ -22,8 +28,8 @@ public class DatabaseServerConnectionValidator extends BaseConnectionValidator i
         DatabaseServerConfig server = (DatabaseServerConfig) target;
         String connectionUrl = DatabaseCommon.getConnectionURL(server.getDatabaseVendor().jdbcUrlDriverId(),
             server.getHost(), server.getPort(), Optional.empty());
-        validate(server.getConnectorJarUrl(), server.getDatabaseVendor(), connectionUrl, server.getConnectionUserName(),
-            server.getConnectionPassword(), errors);
+        validate(() -> dbConnectionService.getConnection(server.getConnectorJarUrl(), server.getDatabaseVendor(),
+                connectionUrl, server.getConnectionUserName(), server.getConnectionPassword()), connectionUrl, errors);
     }
 
 }
