@@ -1,0 +1,48 @@
+package com.sequenceiq.distrox.api.distrox.base.parameter.instancegroup;
+
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.sequenceiq.cloudbreak.api.endpoint.v4.common.mappable.CloudPlatform;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+@ApiModel
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(Include.NON_NULL)
+public class GcpInstanceGroupV1Parameters extends InstanceGroupV1ParametersBase {
+
+    private String opId;
+
+    public String getOpId() {
+        return opId;
+    }
+
+    public void setOpId(String opId) {
+        this.opId = opId;
+    }
+
+    @Override
+    public Map<String, Object> asMap() {
+        Map<String, Object> map = super.asMap();
+        putIfValueNotNull(map, "opid", opId);
+        return map;
+    }
+
+    @Override
+    @JsonIgnore
+    @ApiModelProperty(hidden = true)
+    public CloudPlatform getCloudPlatform() {
+        return CloudPlatform.GCP;
+    }
+
+    @Override
+    public void parse(Map<String, Object> parameters) {
+        super.parse(parameters);
+        opId = getParameterOrNull(parameters, "opid");
+    }
+}

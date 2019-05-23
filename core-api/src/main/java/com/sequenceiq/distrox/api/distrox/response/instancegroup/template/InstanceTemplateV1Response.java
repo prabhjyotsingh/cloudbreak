@@ -1,0 +1,61 @@
+package com.sequenceiq.distrox.api.distrox.response.instancegroup.template;
+
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.sequenceiq.distrox.api.distrox.response.instancegroup.template.volume.RootVolumeV1Response;
+import com.sequenceiq.distrox.api.distrox.response.instancegroup.template.volume.VolumeV1Response;
+import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.InstanceTemplateV4Base;
+import com.sequenceiq.cloudbreak.doc.ModelDescriptions;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+@ApiModel
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(Include.NON_NULL)
+public class InstanceTemplateV1Response extends InstanceTemplateV4Base {
+
+    @ApiModelProperty(ModelDescriptions.ID)
+    private Long id;
+
+    private RootVolumeV1Response rootVolume;
+
+    private VolumeV1Response ephemeralVolume;
+
+    private Set<VolumeV1Response> attachedVolumes;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public RootVolumeV1Response getRootVolume() {
+        return rootVolume;
+    }
+
+    public void setRootVolume(RootVolumeV1Response rootVolume) {
+        this.rootVolume = rootVolume;
+    }
+
+    public VolumeV1Response getEphemeralVolume() {
+        return ephemeralVolume;
+    }
+
+    public void setEphemeralVolume(VolumeV1Response ephemeralVolume) {
+        this.ephemeralVolume = ephemeralVolume;
+    }
+
+    public Set<VolumeV1Response> getAttachedVolumes() {
+        return attachedVolumes;
+    }
+
+    public void setAttachedVolumes(Set<VolumeV1Response> attachedVolumes) {
+        this.attachedVolumes = attachedVolumes;
+    }
+}
