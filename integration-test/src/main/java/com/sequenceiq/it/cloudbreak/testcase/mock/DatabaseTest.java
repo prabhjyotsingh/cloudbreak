@@ -108,7 +108,7 @@ public class DatabaseTest extends AbstractIntegrationTest {
                 .validate();
     }
 
-    @Test(dataProvider = INVALID_ATTRIBUTE_PROVIDER)
+    @Test(dataProvider = INVALID_ATTRIBUTE_PROVIDER, enabled = false)
     public void testCreateDatabaseWithInvalidAttribute(
             TestContext testContext,
             String databaseName,
@@ -131,7 +131,7 @@ public class DatabaseTest extends AbstractIntegrationTest {
                 .validate();
     }
 
-    @Test(dataProvider = INVALID_ATTRIBUTE_PROVIDER)
+    @Test(dataProvider = INVALID_ATTRIBUTE_PROVIDER, enabled = false)
     public void testDatabaseTestConnectionWithInvalidAttribute(
             TestContext testContext,
             String databaseName,

@@ -20,7 +20,7 @@ public class DatabaseServerConnectionValidator extends BaseConnectionValidator i
     @Override
     public void validate(Object target, Errors errors) {
         DatabaseServerConfig server = (DatabaseServerConfig) target;
-        String connectionUrl = DatabaseCommon.getConnectionURL(server.getDatabaseVendor().jdbcUrlDriverId(),
+        String connectionUrl = DatabaseCommon.getJdbcConnectionUrl(server.getDatabaseVendor().jdbcUrlDriverId(),
             server.getHost(), server.getPort(), Optional.empty());
         validate(server.getConnectorJarUrl(), server.getDatabaseVendor(), connectionUrl, server.getConnectionUserName(),
             server.getConnectionPassword(), errors);
