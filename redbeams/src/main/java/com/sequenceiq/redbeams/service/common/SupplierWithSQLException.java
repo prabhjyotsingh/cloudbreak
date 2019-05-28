@@ -1,4 +1,4 @@
-package com.sequenceiq.redbeams.service.validation;
+package com.sequenceiq.redbeams.service.common;
 
 import java.sql.SQLException;
 

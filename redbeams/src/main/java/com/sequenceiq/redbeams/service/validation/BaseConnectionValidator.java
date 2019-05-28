@@ -1,5 +1,7 @@
 package com.sequenceiq.redbeams.service.validation;
 
+import com.sequenceiq.redbeams.service.common.SupplierWithSQLException;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -12,7 +14,7 @@ public abstract class BaseConnectionValidator {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseConnectionValidator.class);
 
     protected <T> void validate(SupplierWithSQLException<Connection> connectionFunction, String connectionUrl,
-        Errors errors) {
+                                Errors errors) {
         try (Connection conn = connectionFunction.get()) {
             LOGGER.debug("Connection successful to {}", connectionUrl);
         } catch (SQLException e) {

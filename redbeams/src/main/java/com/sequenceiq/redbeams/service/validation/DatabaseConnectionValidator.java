@@ -6,11 +6,15 @@ import org.springframework.validation.Validator;
 
 import com.sequenceiq.redbeams.domain.DatabaseConfig;
 import com.sequenceiq.redbeams.service.connectivity.DatabaseConnectionService;
+import com.sequenceiq.redbeams.service.drivers.DriverCache;
 
 import javax.inject.Inject;
 
 @Component
 public class DatabaseConnectionValidator extends BaseConnectionValidator implements Validator {
+
+    @Inject
+    private DriverCache driverCache;
 
     @Inject
     private DatabaseConnectionService dbConnectionService;
@@ -25,9 +29,10 @@ public class DatabaseConnectionValidator extends BaseConnectionValidator impleme
         DatabaseConfig database = (DatabaseConfig) target;
         String connectionUrl = database.getConnectionURL();
 
-        validate(() -> dbConnectionService.getConnection(database.getConnectorJarUrl(),
-                database.getDatabaseVendor(), connectionUrl, database.getConnectionUserName().getRaw(),
-                database.getConnectionPassword().getRaw()), connectionUrl, errors);
+        validate(driverCache.execWithDatabaseDriver(database.getConnectorJarUrl(), database.getDatabaseVendor(),
+                driver -> dbConnectionService.getConnection(driver, connectionUrl,
+                        database.getConnectionUserName().getRaw(), database.getConnectionPassword().getRaw())),
+                connectionUrl, errors);
     }
 
 }

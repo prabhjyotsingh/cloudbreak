@@ -136,7 +136,8 @@ public class DatabaseServerConfigService {
         DatabaseServerConfig databaseServerConfig = getByNameInWorkspace(workspaceId, serverName);
         String createResult;
 
-        try (Connection conn = databaseConnectionService.getConnection(databaseServerConfig);
+        databaseConnectionService.
+        try (Connection conn = databaseConnectionService.execWithConnection(databaseServerConfig);
              PreparedStatement statement = conn.prepareStatement("CREATE DATABASE ?")) {
             statement.setString(1, databaseName);
 
