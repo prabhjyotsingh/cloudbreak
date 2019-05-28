@@ -4,10 +4,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.cloudera.thunderhead.service.usermanagement.UserManagementGrpc;
 import com.cloudera.thunderhead.service.usermanagement.UserManagementGrpc.UserManagementBlockingStub;
 import com.cloudera.thunderhead.service.usermanagement.UserManagementProto;
 import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.Account;
+import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.CreateAccessKeyRequest;
+import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.CreateAccessKeyResponse;
 import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.GetAccountRequest;
 import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.GetUserRequest;
 import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.ListMachineUsersRequest;
@@ -17,12 +22,15 @@ import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.User;
 import com.sequenceiq.cloudbreak.auth.altus.exception.UmsAuthenticationException;
 
 import io.grpc.ManagedChannel;
+import io.grpc.StatusRuntimeException;
 
 /**
  * A simple wrapper to the GRPC user management service. This handles setting up
  * the appropriate context-propogatinng interceptors and hides some boilerplate.
  */
 public class UmsClient {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(UmsClient.class);
 
     private final ManagedChannel channel;
 
@@ -93,6 +101,38 @@ public class UmsClient {
         return machineUsers.get(0);
     }
 
+    public void createMachineUser(String requestId, String userCrn, String machineUserName) {
+        checkNotNull(requestId);
+        checkNotNull(userCrn);
+        checkNotNull(machineUserName);
+        try {
+            UserManagementProto.CreateMachineUserResponse response = newStub(requestId).createMachineUser(
+                    UserManagementProto.CreateMachineUserRequest.newBuilder()
+                            .setAccountId(Crn.fromString(userCrn).getAccountId())
+                            .setMachineUserName(machineUserName)
+                            .build());
+            LOGGER.info("Machine user created: {}.", response.getMachineUser().getCrn());
+        } catch (StatusRuntimeException e) {
+            if (e.getStatus().getCode().equals(
+                    io.grpc.Status.ALREADY_EXISTS.getCode())) {
+                LOGGER.info("Machine user already exists.");
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    public void deleteMachineUser(String requestId, String userCrn, String machineUserName) {
+        checkNotNull(requestId);
+        checkNotNull(userCrn);
+        checkNotNull(machineUserName);
+        newStub(requestId).deleteMachineUser(
+                UserManagementProto.DeleteMachineUserRequest.newBuilder()
+                        .setAccountId(Crn.fromString(userCrn).getAccountId())
+                        .setMachineUserNameOrCrn(machineUserName)
+                        .build());
+    }
+
     private <T> void checkSingleUserResponse(List<T> users, String crnResource) {
         if (users.size() < 1) {
             throw new UmsAuthenticationException(String.format("No user found in UMS system: %s", crnResource));
@@ -159,6 +199,47 @@ public class UmsClient {
                         .setAccountId(Crn.fromString(userCrn).getAccountId())
                         .build()
         ).getAccount();
+    }
+
+    /**
+     * Wraps a call to create an access private key pair
+     * @param requestId the request ID for the request
+     * @param userCrn the user CRN
+     * @param machineUserName the machine user name
+     * @return key creation response
+     */
+    CreateAccessKeyResponse createAccessPrivateKeyPair(String requestId, String userCrn, String machineUserName) {
+        checkNotNull(requestId);
+        checkNotNull(userCrn);
+        checkNotNull(machineUserName);
+        return newStub(requestId).createAccessKey(
+                CreateAccessKeyRequest.newBuilder()
+                        .setAccountId(Crn.fromString(userCrn).getAccountId())
+                        .setMachineUserNameOrCrn(machineUserName)
+                        .build());
+    }
+
+    public List<UserManagementProto.AccessKey> listMachineUserAccessKeys(String requestId, String userCrn, String machineUserName) {
+        String accountId = Crn.fromString(userCrn).getAccountId();
+        UserManagementProto.ListAccessKeysResponse listAccessKeysResponse =
+                newStub(requestId).listAccessKeys(
+                        UserManagementProto.ListAccessKeysRequest.newBuilder()
+                                .setAccountId(accountId)
+                                .setKeyAssignee(UserManagementProto.Actor.newBuilder()
+                                        .setAccountId(accountId)
+                                        .setMachineUserNameOrCrn(machineUserName)
+                                        .build())
+                                .build());
+        return listAccessKeysResponse.getAccessKeyList();
+    }
+
+    void deleteAccessKey(String requestId, String accessKey, String userCrn) {
+        checkNotNull(requestId);
+        checkNotNull(accessKey);
+        checkNotNull(userCrn);
+        newStub(requestId)
+                .deleteAccessKey(
+                        UserManagementProto.DeleteAccessKeyRequest.newBuilder().build());
     }
 
     /**

@@ -16,9 +16,11 @@ import org.springframework.stereotype.Component;
 
 import com.cloudera.thunderhead.service.usermanagement.UserManagementProto;
 import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.Account;
+import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.CreateAccessKeyResponse;
 import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.MachineUser;
 import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.User;
 import com.sequenceiq.cloudbreak.auth.altus.config.UmsConfig;
+import com.sequenceiq.cloudbreak.auth.altus.model.AltusCredential;
 
 import io.grpc.ManagedChannelBuilder;
 
@@ -61,9 +63,29 @@ public class GrpcUmsClient {
     public MachineUser getMachineUserDetails(String actorCrn, String userCrn, Optional<String> requestId) {
         try (ManagedChannelWrapper channelWrapper = makeWrapper()) {
             UmsClient client = new UmsClient(channelWrapper.getChannel(), actorCrn);
-            LOGGER.debug("Getting machineuser information for {} using request ID {}", userCrn, requestId);
+            LOGGER.debug("Getting machine user information for {} using request ID {}", userCrn, requestId);
             MachineUser machineUser = client.getMachineUser(requestId.orElse(UUID.randomUUID().toString()), userCrn);
             LOGGER.debug("MachineUser information retrieved for userCrn: {}", machineUser.getCrn());
+            return machineUser;
+        }
+    }
+
+    /**
+     * Creates new machine user
+     *
+     * @param machineUserName   new machine user name
+     * @param userCrn           the CRN of the user
+     * @param requestId         an optional request Id
+     * @return the user associated with this user CRN
+     */
+    public MachineUser createMachineUser(String machineUserName, String userCrn, Optional<String> requestId) {
+        try (ManagedChannelWrapper channelWrapper = makeWrapper()) {
+            UmsClient client = new UmsClient(channelWrapper.getChannel(), userCrn);
+            String generatedRequestId = requestId.orElse(UUID.randomUUID().toString());
+            LOGGER.debug("Creating machine user {} for {} using request ID {}", machineUserName, userCrn, generatedRequestId);
+            client.createMachineUser(requestId.orElse(UUID.randomUUID().toString()), userCrn, machineUserName);
+            MachineUser machineUser = client.getMachineUser(requestId.orElse(UUID.randomUUID().toString()), userCrn);
+            LOGGER.debug("Machine User information retrieved for userCrn: {}", machineUser.getCrn());
             return machineUser;
         }
     }
@@ -140,6 +162,15 @@ public class GrpcUmsClient {
         try (ManagedChannelWrapper channelWrapper = makeWrapper()) {
             UmsClient client = new UmsClient(channelWrapper.getChannel(), userCrn);
             client.notifyResourceDeleted(requestId, resourceCrn);
+        }
+    }
+
+    public AltusCredential generateAccessSecretKeyPair(String userCrn, String actorCrn, Optional<String> requestId) {
+        try (ManagedChannelWrapper channelWrapper = makeWrapper()) {
+            UmsClient client = new UmsClient(channelWrapper.getChannel(), actorCrn);
+            LOGGER.info("Generating new access / secret key pair for {}", actorCrn);
+            CreateAccessKeyResponse accessKeyResponse = client.createAccessPrivateKeyPair(requestId.orElse(UUID.randomUUID().toString()), userCrn, actorCrn);
+            return new AltusCredential(accessKeyResponse.getAccessKey().getAccessKeyId(), accessKeyResponse.getPrivateKey().toCharArray());
         }
     }
 

@@ -194,6 +194,45 @@ public class MockUserManagementService extends UserManagementGrpc.UserManagement
         responseObserver.onCompleted();
     }
 
+    @Override
+    public void createAccessKey(UserManagementProto.CreateAccessKeyRequest request,
+            StreamObserver<UserManagementProto.CreateAccessKeyResponse> responseObserver) {
+        responseObserver.onNext(UserManagementProto.CreateAccessKeyResponse.newBuilder()
+                .setPrivateKey(UUID.randomUUID().toString())
+                .setAccessKey(UserManagementProto.AccessKey.newBuilder()
+                        .setAccessKeyId(UUID.randomUUID().toString())
+                        .build())
+                .build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void listAccessKeys(UserManagementProto.ListAccessKeysRequest request, StreamObserver<UserManagementProto.ListAccessKeysResponse> responseObserver) {
+        responseObserver.onNext(UserManagementProto.ListAccessKeysResponse.newBuilder().build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void deleteAccessKey(UserManagementProto.DeleteAccessKeyRequest request,
+            StreamObserver<UserManagementProto.DeleteAccessKeyResponse> responseObserver) {
+        responseObserver.onNext(UserManagementProto.DeleteAccessKeyResponse.newBuilder().build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void createMachineUser(UserManagementProto.CreateMachineUserRequest request,
+            StreamObserver<UserManagementProto.CreateMachineUserResponse> responseObserver) {
+        responseObserver.onNext(UserManagementProto.CreateMachineUserResponse.newBuilder().build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void deleteMachineUser(UserManagementProto.DeleteMachineUserRequest request,
+            StreamObserver<UserManagementProto.DeleteMachineUserResponse> responseObserver) {
+        responseObserver.onNext(UserManagementProto.DeleteMachineUserResponse.newBuilder().build());
+        responseObserver.onCompleted();
+    }
+
     private String getLicense() {
         String license = "";
         try {

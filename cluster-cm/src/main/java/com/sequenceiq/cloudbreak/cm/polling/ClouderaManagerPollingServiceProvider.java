@@ -1,6 +1,7 @@
 package com.sequenceiq.cloudbreak.cm.polling;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -22,6 +23,7 @@ import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerStartManagementS
 import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerStartupListenerTask;
 import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerStopListenerTask;
 import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerTemplateInstallChecker;
+import com.sequenceiq.cloudbreak.domain.stack.Component;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
 import com.sequenceiq.cloudbreak.polling.PollingResult;
 import com.sequenceiq.cloudbreak.polling.PollingService;
@@ -79,6 +81,10 @@ public class ClouderaManagerPollingServiceProvider {
 
     @Inject
     private ClouderaManagerDeleteUnusedCredentialsListenerTask deleteUnusedCredentialsListenerTask;
+
+    public Set<Component> getStack(Stack stack, ApiClient apiClient) {
+        return stack.getComponents();
+    }
 
     public PollingResult clouderaManagerStartupPollerObjectPollingService(Stack stack, ApiClient apiClient) {
         LOGGER.debug("Waiting for Cloudera Manager startup. [Server address: {}]", stack.getAmbariIp());
