@@ -55,8 +55,7 @@ public class DatabaseV4Controller /*extends NotificationController */ implements
 
     @Override
     public DatabaseV4Response delete(String name) {
-        // TODO special care for registered databases: we should not delete the db, only delete the entry from redbeams db.
-        return new DatabaseV4Response();
+        return redbeamsConverterUtil.convert(databaseConfigService.delete(name), DatabaseV4Response.class);
     }
 
     @Override
