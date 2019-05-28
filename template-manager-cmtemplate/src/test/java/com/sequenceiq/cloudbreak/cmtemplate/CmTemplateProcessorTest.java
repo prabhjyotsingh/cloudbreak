@@ -25,6 +25,8 @@ import com.cloudera.api.swagger.model.ApiClusterTemplateRoleConfigGroup;
 import com.cloudera.api.swagger.model.ApiClusterTemplateRoleConfigGroupInfo;
 import com.cloudera.api.swagger.model.ApiClusterTemplateService;
 import com.sequenceiq.cloudbreak.cloud.model.ClouderaManagerRepo;
+import com.sequenceiq.cloudbreak.cloud.model.GatewayRecommendation;
+import com.sequenceiq.cloudbreak.cloud.model.InstanceCount;
 import com.sequenceiq.cloudbreak.common.json.JsonUtil;
 import com.sequenceiq.cloudbreak.template.TemplatePreparationObject;
 import com.sequenceiq.cloudbreak.template.model.GeneralClusterConfigs;
@@ -357,6 +359,43 @@ public class CmTemplateProcessorTest {
         CmTemplateProcessor expectedProcessor = new CmTemplateProcessor(getBlueprintText("input/clouderamanager-knox-multi-gateway.bp"));
         String expectedTemplate = templateToString(expectedProcessor.getTemplate());
         assertEquals(expectedTemplate, actualTemplate);
+    }
+
+    @Test
+    public void getCardinalityByHostGroup() {
+        underTest = new CmTemplateProcessor(getBlueprintText("input/clouderamanager-multi-gateway.bp"));
+
+        Map<String, InstanceCount> expected = Map.of(
+                "master", InstanceCount.EXACTLY_ONE,
+                "master2", InstanceCount.EXACTLY_ONE,
+                "worker", InstanceCount.ONE_OR_MORE
+        );
+        assertEquals(expected, underTest.getCardinalityByHostGroup());
+
+        underTest = new CmTemplateProcessor(getBlueprintText("input/namenode-ha.bp"));
+
+        expected = Map.of(
+                "master", InstanceCount.exactly(2),
+                "quorum", InstanceCount.atLeast(3),
+                "gateway", InstanceCount.EXACTLY_ONE,
+                "worker", InstanceCount.atLeast(3)
+        );
+        assertEquals(expected, underTest.getCardinalityByHostGroup());
+    }
+
+    @Test
+    public void recommendGateway() {
+        underTest = new CmTemplateProcessor(getBlueprintText("input/clouderamanager-multi-gateway.bp"));
+        assertEquals(new GatewayRecommendation(Set.of("master")), underTest.recommendGateway());
+
+        underTest = new CmTemplateProcessor(getBlueprintText("input/namenode-ha.bp"));
+        assertEquals(new GatewayRecommendation(Set.of("gateway")), underTest.recommendGateway());
+
+        underTest = new CmTemplateProcessor(getBlueprintText("input/namenode-ha-single-worker.bp"));
+        assertEquals(new GatewayRecommendation(Set.of("worker")), underTest.recommendGateway());
+
+        underTest = new CmTemplateProcessor(getBlueprintText("input/namenode-ha-no-gateway.bp"));
+        assertEquals(new GatewayRecommendation(Set.of()), underTest.recommendGateway());
     }
 
     private static void assertSortedEquals(Set<?> expected, Set<?> actual) {
